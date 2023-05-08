@@ -1,4 +1,4 @@
-package org.woheller69.photondialog;
+package org.woheller69.omgeodialog;
 
 public class City {
 

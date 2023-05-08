@@ -1,4 +1,4 @@
-package org.woheller69.photondialog;
+package org.woheller69.omgeodialog;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -43,12 +44,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class PhotonDialog extends DialogFragment {
+public class OmGeoDialog extends DialogFragment {
 
-    public interface PhotonDialogResult {
-        void onPhotonDialogResult(City city);
+    public interface OmGeoDialogResult {
+        void onOmGeoDialogResult(City city);
     }
-        public PhotonDialogResult mPhotonDialogResult;
+        public OmGeoDialogResult mOmGeoDialogResult;
         Activity activity;
         View rootView;
 
@@ -65,7 +66,7 @@ public class PhotonDialog extends DialogFragment {
         private static final long AUTO_COMPLETE_DELAY = 300;
         private Handler handler;
         private AutoSuggestAdapter autoSuggestAdapter;
-        String url = "https://photon.komoot.io/api/?q=";
+        String url="https://geocoding-api.open-meteo.com/v1/search?name=";
         String lang = "default";
 
         @Override
@@ -73,7 +74,7 @@ public class PhotonDialog extends DialogFragment {
             super.onAttach(context);
             if (context instanceof Activity) {
                 this.activity = (Activity) context;
-                mPhotonDialogResult = (PhotonDialogResult) getActivity();
+                mOmGeoDialogResult = (OmGeoDialogResult) getActivity();
 
             }
         }
@@ -85,17 +86,11 @@ public class PhotonDialog extends DialogFragment {
         public Dialog onCreateDialog (Bundle savedInstanceState){
 
             Locale locale = ConfigurationCompat.getLocales(Resources.getSystem().getConfiguration()).get(0);
-            //supported languages by photon.komoot.io API: default, en, de, fr, it
-            if ((locale.getLanguage().equals("de")) || (locale.getLanguage().equals("en")) || (locale.getLanguage().equals("fr")) || (locale.getLanguage().equals("it"))) {
-                lang = locale.getLanguage();
-            } else {
-                lang = "default";
-            }
-
+            lang=locale.getLanguage();
 
             LayoutInflater inflater = getActivity().getLayoutInflater();
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            View view = inflater.inflate(R.layout.photon_dialog, null);
+            View view = inflater.inflate(R.layout.omgeo_dialog, null);
 
             rootView = view;
 
@@ -113,8 +108,9 @@ public class PhotonDialog extends DialogFragment {
             autoCompleteTextView = (AutoCompleteTextView) rootView.findViewById(R.id.autoCompleteTextView);
             //Setting up the adapter for AutoSuggest
             autoSuggestAdapter = new AutoSuggestAdapter(requireContext(),
-                    R.layout.photon_list_item);
+                    R.layout.omgeo_list_item);
             autoCompleteTextView.setThreshold(2);
+            autoCompleteTextView.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
             autoCompleteTextView.setAdapter(autoSuggestAdapter);
 
             autoCompleteTextView.setOnItemClickListener(
@@ -170,50 +166,57 @@ public class PhotonDialog extends DialogFragment {
 
         }
         private void makeApiCall (String text){
-            photonApiCall.make(getContext(), text, url, lang, userAgentString, response -> {
+            omGeoApiCall.make(getContext(), text, url, lang, userAgentString, response -> {
                 //parsing logic, please change it as per your requirement
                 List<String> stringList = new ArrayList<>();
                 List<City> cityList = new ArrayList<>();
                 try {
                     JSONObject responseObject = new JSONObject(response);
-                    JSONArray array = responseObject.getJSONArray("features");
+
+                    JSONArray array = responseObject.getJSONArray("results");
                     for (int i = 0; i < array.length(); i++) {
-                        City city = new City();
-                        String citystring = "";
+                        City city =new City();
+                        String citystring="";
                         JSONObject jsonFeatures = array.getJSONObject(i);
-                        JSONObject jsonProperties = jsonFeatures.getJSONObject("properties");
-                        JSONObject jsonGeometry = jsonFeatures.getJSONObject("geometry");
-                        JSONArray jsonCoordinates = jsonGeometry.getJSONArray("coordinates");
-                        String name = "";
-                        if (jsonProperties.has("name")) {
-                            name = jsonProperties.getString("name");
-                            citystring = citystring + name + ", ";
-                        }
-                        String postcode = "";
-                        if (jsonProperties.has("postcode")) {
-                            postcode = jsonProperties.getString("postcode");
-                            citystring = citystring + postcode + ", ";
-                        }
-                        String cityname = name;
-                        if (jsonProperties.has("city")) {
-                            cityname = jsonProperties.getString("city");
-                            citystring = citystring + cityname + ", ";
-                        }
-                        String state = "";
-                        if (jsonProperties.has("state")) {
-                            state = jsonProperties.getString("state");
-                            citystring = citystring + state + ", ";
-                        }
-                        String countrycode = "";
-                        if (jsonProperties.has("countrycode")) {
-                            countrycode = jsonProperties.getString("countrycode");
-                            citystring = citystring + countrycode;
+                        String name="";
+                        if (jsonFeatures.has("name")) {
+                            name=jsonFeatures.getString("name");
+                            citystring=citystring+name;
                         }
 
-                        city.setCityName(cityname);
+                        String countrycode="";
+                        if (jsonFeatures.has("country_code")) {
+                            countrycode=jsonFeatures.getString("country_code");
+                            citystring=citystring+", "+countrycode;
+                        }
+                        String admin1="";
+                        if (jsonFeatures.has("admin1")) {
+                            admin1=jsonFeatures.getString("admin1");
+                            citystring=citystring+", "+admin1;
+                        }
+
+                        String admin2="";
+                        if (jsonFeatures.has("admin2")) {
+                            admin2=jsonFeatures.getString("admin2");
+                            citystring=citystring+", "+admin2;
+                        }
+
+                        String admin3="";
+                        if (jsonFeatures.has("admin3")) {
+                            admin3=jsonFeatures.getString("admin3");
+                            citystring=citystring+", "+admin3;
+                        }
+
+                        String admin4="";
+                        if (jsonFeatures.has("admin4")) {
+                            admin4=jsonFeatures.getString("admin4");
+                            citystring=citystring+", "+admin4;
+                        }
+
+                        city.setCityName(name);
                         city.setCountryCode(countrycode);
-                        city.setLatitude((float) jsonCoordinates.getDouble(1));
-                        city.setLongitude((float) jsonCoordinates.getDouble(0));
+                        city.setLatitude((float) jsonFeatures.getDouble("latitude"));
+                        city.setLongitude((float) jsonFeatures.getDouble("longitude"));
                         if (countryList==null){
                             cityList.add(city);
                             stringList.add(citystring);
@@ -243,7 +246,7 @@ public class PhotonDialog extends DialogFragment {
             if (selectedCity == null) {
                 Toast.makeText(activity, "Not found", Toast.LENGTH_SHORT).show();
             } else {
-                mPhotonDialogResult.onPhotonDialogResult(selectedCity);
+                mOmGeoDialogResult.onOmGeoDialogResult(selectedCity);
                 dismiss();
             }
         }
@@ -334,19 +337,19 @@ class AutoSuggestAdapter extends ArrayAdapter<String> implements Filterable {
     }
 }
 
-class photonApiCall {
-    private static photonApiCall mInstance;
+class omGeoApiCall {
+    private static omGeoApiCall mInstance;
     private RequestQueue mRequestQueue;
     private static Context mCtx;
 
-    public photonApiCall(Context ctx) {
+    public omGeoApiCall(Context ctx) {
         mCtx = ctx.getApplicationContext();
         mRequestQueue = getRequestQueue();
     }
 
-    public static synchronized photonApiCall getInstance(Context context) {
+    public static synchronized omGeoApiCall getInstance(Context context) {
         if (mInstance == null) {
-            mInstance = new photonApiCall(context);
+            mInstance = new omGeoApiCall(context);
         }
         return mInstance;
     }
@@ -364,7 +367,7 @@ class photonApiCall {
 
     public static void make(Context ctx, String query, String url, String lang, String userAgent, Response.Listener<String>
             listener, Response.ErrorListener errorListener) {
-        url = url + query+"&lang="+lang;
+        url = url + query+"&language="+lang;
 
         StringRequest stringRequest;
         if (userAgent!=null){
@@ -382,6 +385,6 @@ class photonApiCall {
                     listener, errorListener);
         }
 
-        photonApiCall.getInstance(ctx).addToRequestQueue(stringRequest);
+        omGeoApiCall.getInstance(ctx).addToRequestQueue(stringRequest);
     }
 }
