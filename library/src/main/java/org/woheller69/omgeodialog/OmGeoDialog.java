@@ -67,14 +67,14 @@ public class OmGeoDialog extends DialogFragment {
         private Handler handler;
         private AutoSuggestAdapter autoSuggestAdapter;
         String url="https://geocoding-api.open-meteo.com/v1/search?name=";
-        String lang = "default";
+        String lang = "en";
 
         @Override
         public void onAttach (@NonNull Context context){
             super.onAttach(context);
             if (context instanceof Activity) {
                 this.activity = (Activity) context;
-                mOmGeoDialogResult = (OmGeoDialogResult) getActivity();
+                mOmGeoDialogResult = (OmGeoDialogResult) activity;
 
             }
         }
@@ -86,10 +86,10 @@ public class OmGeoDialog extends DialogFragment {
         public Dialog onCreateDialog (Bundle savedInstanceState){
 
             Locale locale = ConfigurationCompat.getLocales(Resources.getSystem().getConfiguration()).get(0);
-            lang=locale.getLanguage();
+            if (locale != null) lang=locale.getLanguage();
 
-            LayoutInflater inflater = getActivity().getLayoutInflater();
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            LayoutInflater inflater = activity.getLayoutInflater();
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             View view = inflater.inflate(R.layout.omgeo_dialog, null);
 
             rootView = view;
@@ -117,7 +117,7 @@ public class OmGeoDialog extends DialogFragment {
                     (parent, view1, position, id) -> {
                         selectedCity = autoSuggestAdapter.getObject(position);
                         //Hide keyboard to have more space
-                        final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        final InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                         //Show city on map
                         webview.setVisibility(View.VISIBLE);

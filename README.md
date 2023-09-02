@@ -26,7 +26,7 @@ Add the library dependency to your build.gradle file.
 
 ```gradle
 dependencies {
-    implementation 'com.github.woheller69:OmGeoDialog:V1.1'
+    implementation 'com.github.woheller69:OmGeoDialog:V1.2'
 }
 ```
 
@@ -75,7 +75,6 @@ Open a search dialog:
         
         omGeoDialog.show(fragmentManager, "");
         getSupportFragmentManager().executePendingTransactions();
-        omGeoDialog.getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
 ```
 
