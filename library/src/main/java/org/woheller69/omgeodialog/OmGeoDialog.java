@@ -1,10 +1,5 @@
 package org.woheller69.omgeodialog;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -22,10 +17,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Filter;
-import android.widget.Filterable;
+
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -39,10 +32,8 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class OmGeoDialog extends DialogFragment {
 
@@ -58,8 +49,8 @@ public class OmGeoDialog extends DialogFragment {
 
         private ArrayList<String> countryList=null;
         private String title="Title";
-        private String negativeButtonText= "Cancel";
-        private String positiveButtonText= "OK";
+        private String negativeButtonText= getString(android.R.string.cancel);
+        private String positiveButtonText= getString(android.R.string.ok);
         private String userAgentString = null;
 
         private static final int TRIGGER_AUTO_COMPLETE = 100;
