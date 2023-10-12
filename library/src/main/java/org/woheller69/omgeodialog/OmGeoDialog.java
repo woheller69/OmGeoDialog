@@ -43,7 +43,7 @@ public class OmGeoDialog extends DialogFragment {
         public OmGeoDialogResult mOmGeoDialogResult;
         Activity activity;
         View rootView;
-
+        private WebView webview;
         private AutoCompleteTextView autoCompleteTextView;
         City selectedCity;
 
@@ -55,10 +55,16 @@ public class OmGeoDialog extends DialogFragment {
 
         private static final int TRIGGER_AUTO_COMPLETE = 100;
         private static final long AUTO_COMPLETE_DELAY = 300;
+        private static final int TRIGGER_HIDE_KEYBOARD = 200;
+        private static final long HIDE_KEYBOARD_DELAY = 3000;
         private Handler handler;
         private AutoSuggestAdapter autoSuggestAdapter;
         String url="https://geocoding-api.open-meteo.com/v1/search?name=";
         String lang = "en";
+
+        public OmGeoDialog() {
+        setRetainInstance(true);
+    }
 
         @Override
         public void onAttach (@NonNull Context context){
@@ -70,11 +76,18 @@ public class OmGeoDialog extends DialogFragment {
             }
         }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) dismiss();
-    }
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            if (savedInstanceState != null) dismiss();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            handler.removeMessages(TRIGGER_HIDE_KEYBOARD);
+            if(selectedCity != null && webview != null) webview.loadUrl("file:///android_asset/map.html?lat=" + selectedCity.getLatitude() + "&lon=" + selectedCity.getLongitude());
+        }
 
         @NonNull
         @SuppressLint("SetJavaScriptEnabled")
@@ -93,7 +106,7 @@ public class OmGeoDialog extends DialogFragment {
             builder.setView(view);
             builder.setTitle(title);
 
-            final WebView webview =  rootView.findViewById(R.id.mapView);
+            webview =  rootView.findViewById(R.id.mapView);
             webview.getSettings().setJavaScriptEnabled(true);
             if (userAgentString!=null) {
                 webview.getSettings().setUserAgentString(userAgentString);
@@ -116,6 +129,7 @@ public class OmGeoDialog extends DialogFragment {
                         final InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                         //Show city on map
+                        handler.removeMessages(TRIGGER_HIDE_KEYBOARD);
                         webview.setVisibility(View.VISIBLE);
                         webview.loadUrl("file:///android_asset/map.html?lat=" + selectedCity.getLatitude() + "&lon=" + selectedCity.getLongitude());
                     });
@@ -131,8 +145,9 @@ public class OmGeoDialog extends DialogFragment {
                 public void onTextChanged(CharSequence s, int start, int before,
                                           int count) {
                     handler.removeMessages(TRIGGER_AUTO_COMPLETE);
-                    handler.sendEmptyMessageDelayed(TRIGGER_AUTO_COMPLETE,
-                            AUTO_COMPLETE_DELAY);
+                    handler.sendEmptyMessageDelayed(TRIGGER_AUTO_COMPLETE, AUTO_COMPLETE_DELAY);
+                    handler.removeMessages(TRIGGER_HIDE_KEYBOARD);
+                    handler.sendEmptyMessageDelayed(TRIGGER_HIDE_KEYBOARD, HIDE_KEYBOARD_DELAY);
                 }
 
                 @Override
@@ -150,6 +165,10 @@ public class OmGeoDialog extends DialogFragment {
                             e.printStackTrace();
                         }
                     }
+                } else if (msg.what == TRIGGER_HIDE_KEYBOARD) {
+                    //Hide keyboard to show entries behind the keyboard
+                    final InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(rootView.getWindowToken(), 0);
                 }
                 return false;
             });
